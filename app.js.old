@@ -1,0 +1,66 @@
+// app.js
+const express = require('express');
+
+const app = express();
+const port = 3000;
+
+// Datos de categorías
+const categories = [
+    {
+        name: 'category1',
+        subcategories: [
+            {
+                name: 'category2',
+                subcategories: []
+            },
+            {
+                name: 'category3',
+                subcategories: [
+                    {
+                        name: 'category4',
+                        subcategories: []
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        name: 'category5',
+        subcategories: []
+    }
+];
+
+// Función para obtener la ruta de la categoría
+const getCategoryPath = (categories, categoryName, currentPath = '') => {
+    for (const category of categories) {
+        const path = `${currentPath}/${category.name}`;
+        if (category.name === categoryName) {
+            return path;
+        }
+        const subPath = getCategoryPath(category.subcategories, categoryName, path);
+        if (subPath) {
+            return subPath;
+        }
+    }
+    return null;
+};
+
+// Ruta para probar la función
+app.get('/category-path', (req, res) => {
+    const categoryName = req.query.name; // Obtener el nombre de la categoría desde la query string
+    if (!categoryName) {
+        return res.status(400).json({ error: 'Debes proporcionar un nombre de categoría.' });
+    }
+
+    const path = getCategoryPath(categories, categoryName);
+    if (path) {
+        return res.json({ category: categoryName, path });
+    } else {
+        return res.status(404).json({ error: 'Categoría no encontrada.' });
+    }
+});
+
+// Iniciar el servidor
+app.listen(port, () => {
+    console.log(`Servidor corriendo en http://localhost:${port}`);
+});
